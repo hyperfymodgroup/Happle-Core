@@ -582,3 +582,250 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ---
 
 Built with 💻 by the Happle-Core Team 
+
+## 🔄 Future2 Branch Improvements
+
+### Core System Enhancements
+
+1. **Enhanced GUI System**
+```javascript
+// New GUI Implementation
+export function GUI({ world }) {
+  const [ref, width, height] = useElemSize()
+  return (
+    <div ref={ref} css={baseStyles}>
+      {width > 0 && <Content world={world} width={width} height={height} />}
+    </div>
+  )
+}
+
+// Responsive Content Handler
+function Content({ world, width, height }) {
+  const small = width < 600
+  const touch = useMemo(() => 
+    navigator.userAgent.match(/OculusBrowser|iPhone|iPad|iPod|Android/i), 
+  [])
+  
+  // Enhanced state management
+  const [ready, setReady] = useState(false)
+  const [context, setContext] = useState(null)
+  const [inspect, setInspect] = useState(null)
+  const [code, setCode] = useState(false)
+  const [chat, setChat] = useState(() => !touch)
+  const [avatar, setAvatar] = useState(null)
+  const [disconnected, setDisconnected] = useState(false)
+  
+  // Improved event handling
+  useEffect(() => {
+    const events = {
+      ready: setReady,
+      context: setContext,
+      inspect: setInspect,
+      code: setCode,
+      avatar: setAvatar,
+      disconnect: setDisconnected
+    }
+    
+    // Register events
+    Object.entries(events).forEach(([event, handler]) => {
+      world.on(event, handler)
+    })
+    
+    // Cleanup
+    return () => {
+      Object.entries(events).forEach(([event, handler]) => {
+        world.off(event, handler)
+      })
+    }
+  }, [])
+}
+```
+
+2. **Advanced Inspection System**
+```javascript
+// Enhanced InspectPane with Copy/Paste Support
+export function InspectPane({ world, entity }) {
+  // Global store for copied values
+  const copiedValues = {
+    current: null
+  }
+  
+  // Entity type handling
+  if (entity.isApp) {
+    return <AppPane world={world} app={entity} />
+  }
+  if (entity.isPlayer) {
+    return <PlayerPane world={world} player={entity} />
+  }
+}
+
+// Improved Field Management
+function Field({ world, config, field, value, modify }) {
+  const handleCopy = () => {
+    copiedValues.current = value
+  }
+  
+  const handlePaste = () => {
+    if (copiedValues.current !== null) {
+      modify(field.key, copiedValues.current)
+    }
+  }
+}
+```
+
+3. **Enhanced State Management**
+```javascript
+// Improved state synchronization
+function useAppState(initialState) {
+  const [state, setState] = useState(initialState)
+  const [syncing, setSyncing] = useState(false)
+  
+  useEffect(() => {
+    if (!syncing) {
+      world.setState(`happleCore.apps.${app.id}`, state)
+    }
+  }, [state])
+  
+  // State sync with debounce
+  const syncState = useCallback(
+    debounce((newState) => {
+      setSyncing(true)
+      world.setState(`happleCore.apps.${app.id}`, newState)
+      setSyncing(false)
+    }, 100),
+    []
+  )
+  
+  return [state, setState, syncState]
+}
+```
+
+### New Features
+
+1. **Improved Touch Support**
+   - Enhanced mobile device detection
+   - Optimized touch interactions
+   - Responsive UI adjustments for small screens
+
+2. **Enhanced Copy/Paste System**
+   - Global value storage
+   - Cross-component value transfer
+   - Type-safe value handling
+
+3. **Advanced Field Management**
+   - Expression evaluation for numeric inputs
+   - Draggable number inputs
+   - Vector3 and Euler angle field types
+
+4. **Connection Management**
+   - Improved disconnection handling
+   - Connection state visualization
+   - Automatic reconnection attempts
+
+### Implementation Changes
+
+1. **File Structure Updates**
+```
+Happle-Core/
+├── core/
+│   ├── gui/
+│   │   ├── GUI.js              # Enhanced GUI system
+│   │   ├── Content.js          # Responsive content handler
+│   │   └── TouchHandler.js     # Touch interaction system
+│   ├── inspect/
+│   │   ├── InspectPane.js      # Improved inspection system
+│   │   ├── FieldTypes.js       # Enhanced field handlers
+│   │   └── CopyPaste.js        # Value transfer system
+│   └── state/
+│       ├── AppState.js         # Enhanced state management
+│       └── SyncManager.js      # State synchronization
+```
+
+2. **Component Updates**
+```javascript
+// Enhanced window management
+export class WindowManager {
+  constructor() {
+    this.windows = new Map()
+    this.activeWindow = null
+    this.events = new EventEmitter()
+    this.touchEnabled = false
+    
+    // Touch detection
+    if (typeof window !== 'undefined') {
+      this.touchEnabled = 'ontouchstart' in window
+    }
+  }
+  
+  createWindow(app, options = {}) {
+    const window = new AppWindow(app, {
+      ...options,
+      touchEnabled: this.touchEnabled
+    })
+    this.windows.set(app.id, window)
+    return window
+  }
+}
+```
+
+3. **State Synchronization**
+```javascript
+// Improved state sync
+export class SyncManager {
+  constructor() {
+    this.pending = new Map()
+    this.syncQueue = []
+    this.processing = false
+  }
+  
+  queueSync(path, value) {
+    this.syncQueue.push({ path, value })
+    if (!this.processing) {
+      this.processQueue()
+    }
+  }
+  
+  async processQueue() {
+    this.processing = true
+    while (this.syncQueue.length > 0) {
+      const { path, value } = this.syncQueue.shift()
+      await this.syncState(path, value)
+    }
+    this.processing = false
+  }
+}
+```
+
+### Migration Guide
+
+1. Update core dependencies:
+```bash
+npm install @firebolt-dev/css@latest @firebolt-dev/jsx@latest
+```
+
+2. Replace existing GUI implementation:
+```bash
+cp -r core/gui/* new-core/gui/
+```
+
+3. Update state management:
+```javascript
+// Replace old state implementation
+import { useAppState } from './state/AppState'
+
+// Use new state management
+const [state, setState, syncState] = useAppState(initialState)
+```
+
+4. Implement touch support:
+```javascript
+// Add touch detection
+const touch = useMemo(() => 
+  navigator.userAgent.match(/OculusBrowser|iPhone|iPad|iPod|Android/i), 
+[])
+
+// Update component rendering
+{touch ? <TouchOptimizedUI /> : <StandardUI />}
+```
+
+[Previous sections remain the same...] 
