@@ -1,135 +1,196 @@
 # Happle-Core
 
-A modern, cyberpunk-themed application framework originally developed as a Hyperfy mod, now available as a standalone core framework. This system provides a suite of interconnected applications and utilities designed to create immersive virtual experiences within Hyperfy worlds.
+A modern, cyberpunk-themed application framework originally implemented as a core mod for Hyperfy virtual worlds. This system provides a suite of interconnected applications and utilities designed to create immersive virtual experiences within Hyperfy environments.
 
 ## 🌟 Core Features
 
 - **Modular Architecture**: Built with a component-based structure for easy extensibility
 - **Cyberpunk UI/UX**: Featuring a distinctive cyberpunk aesthetic with neon accents and futuristic design
 - **Rich Application Suite**: Includes various built-in applications for different functionalities
-- **Hyperfy Integration**: Seamlessly integrates with Hyperfy's virtual world platform
+- **Hyperfy Integration**: Deep integration with Hyperfy's core systems and APIs
 
-## 🔮 Hyperfy Mod Implementation
+## 🔮 Implementation in Hyperfy
 
-This framework was originally implemented as a Hyperfy mod, utilizing Hyperfy's core features:
+### Core Architecture
 
-### Integration Points
-
-1. **Three.js Integration**
-   - Utilizes Hyperfy's Three.js implementation for 3D rendering
-   - Interfaces with Hyperfy's world components and entity system
-   - Compatible with Hyperfy's VRM avatar system
-
-2. **Networking Layer**
-   - Leverages Hyperfy's WebSocket infrastructure for real-time communication
-   - Integrates with Hyperfy's player management system
-   - Utilizes matrix-js-sdk for enhanced chat capabilities
-
-3. **UI Framework**
-   - Built using @firebolt-dev/css and @firebolt-dev/jsx
-   - Implements Hyperfy's component lifecycle management
-   - Maintains consistent styling with Hyperfy's theming system
-
-### Converting to .hyp Files
-
-To convert Happle-Core components into Hyperfy mod files (.hyp):
-
-1. **Component Preparation**
+1. **Component Registration**
 ```javascript
-// Component structure
-export default {
-  name: 'HappleCore',
-  components: {
-    HyperFone,
-    ChatApp,
-    // ... other components
+// index.js - Core App Registration
+export const coreApps = [
+  {
+    id: 'chat',
+    name: 'Chat',
+    icon: '💬',
+    component: ChatApp
+  },
+  {
+    id: 'browser',
+    name: 'Browser',
+    icon: '🌐',
+    component: WebBrowser
   }
+]
+```
+
+2. **Main Container Implementation**
+```javascript
+// HyperFone.js - Core Container
+export function HyperFone({ children }) {
+  return (
+    <div css={css`
+      // Cyberpunk styling and layout
+      background: ${cyberpunkTheme.background};
+      ${cyberpunkTheme.common.grid}
+      // ... styling implementation
+    `}>
+      {/* Phone Frame */}
+      <div css={phoneFrameStyles}>
+        // Frame implementation
+      </div>
+      {/* Content */}
+      <div css={contentStyles}>
+        {children}
+      </div>
+    </div>
+  )
 }
 ```
 
-2. **Build Process**
-```bash
-# Install Hyperfy CLI
-npm install -g @hyperfy/cli
+### Integration Points
 
-# Build .hyp file
-hyperfy build --input ./src --output ./dist/happle-core.hyp
+1. **Hyperfy World Integration**
+```javascript
+// Implementation in Hyperfy world
+world.on('ready', () => {
+  // Register HyperFone component
+  world.registerComponent('happle-core', {
+    component: HyperFone,
+    apps: coreApps
+  })
+})
 ```
 
-3. **Required Directory Structure**
+2. **Player Management**
+```javascript
+// Player session handling
+world.on('playerJoined', (player) => {
+  // Initialize player HyperFone instance
+  player.spawn('happle-core', {
+    position: player.position,
+    rotation: player.rotation
+  })
+})
 ```
-happle-core/
-├── manifest.json     # Mod metadata
-├── components/       # Core components
-├── apps/            # Application modules
-└── themes/          # Styling and themes
+
+3. **Networking Implementation**
+```javascript
+// Network state synchronization
+world.state({
+  happleCore: {
+    players: {},
+    apps: {},
+    shared: {}
+  }
+})
+
+// State updates
+world.onStateChange('happleCore.players', (players) => {
+  // Handle player state changes
+})
 ```
 
-## 📱 Built-in Applications
+### Core Systems
 
-1. **ChatApp** (`ChatApp.js`)
-   - Real-time messaging and communication hub
-   - Support for various message types and interactions
-   - 77KB of sophisticated chat functionality
+1. **UI Framework**
+   - Uses @firebolt-dev/css for styling
+   - Implements custom cyberpunk theme system
+   - Responsive layout management
+   - Global style definitions
 
-2. **WebBrowser** (`WebBrowser.js`)
-   - Integrated web browsing capabilities
-   - Custom navigation and content rendering
-   - 23KB of browsing features
+2. **Application Management**
+   - Dynamic app loading system
+   - State persistence
+   - Inter-app communication
+   - Window management
 
-3. **WalletApp** (`WalletApp.js`)
-   - Digital asset management
-   - Transaction handling and balance tracking
-   - 28KB of financial functionality
+3. **Theme System**
+   - Cyberpunk-inspired design tokens
+   - Global style definitions
+   - Consistent component styling
+   - Animation system
 
-4. **Settings** (`Settings.js`)
-   - Comprehensive system configuration
-   - User preferences management
-   - 82KB of customization options
+### File Structure and Organization
 
-5. **ProfileApp** (`ProfileApp.js`)
-   - User profile management
-   - Identity and personalization features
-   - 13KB of profile functionality
+```
+Happle-Core/
+├── core/
+│   ├── HyperFone.js        # Main container
+│   ├── AppWindow.js        # Window system
+│   └── StatusBar.js        # Status display
+├── apps/
+│   ├── ChatApp.js          # Messaging (77KB)
+│   ├── WebBrowser.js       # Browser (23KB)
+│   ├── WalletApp.js        # Wallet (28KB)
+│   └── ...
+├── components/
+│   ├── common/             # Shared components
+│   └── ui/                 # UI elements
+└── themes/
+    └── cyberpunk.js        # Theme definitions
+```
 
-6. **MeshyApp** (`MeshyApp.js`)
-   - Network and connectivity management
-   - 32KB of mesh networking features
+### Implementation Details
 
-7. **InventoryApp** (`InventoryApp.js`)
-   - Digital asset inventory system
-   - Item management and organization
-   - 38KB of inventory features
+1. **Window Management**
+```javascript
+// AppWindow.js
+export function AppWindow({ app, children }) {
+  return (
+    <div css={windowStyles}>
+      <WindowHeader app={app} />
+      <WindowContent>
+        {children}
+      </WindowContent>
+    </div>
+  )
+}
+```
 
-## 🎨 UI Components
+2. **App Communication**
+```javascript
+// Inter-app messaging
+export function sendAppMessage(fromApp, toApp, message) {
+  world.emit('happleCore:appMessage', {
+    from: fromApp,
+    to: toApp,
+    message
+  })
+}
+```
 
-- **HyperFone** (`HyperFone.js`): Main container component with cyberpunk styling
-- **AppWindow** (`AppWindow.js`): Window management system
-- **StatusBar** (`StatusBar.js`): System status display
-- **AppLauncher** (`AppLauncher.js`): Application launching interface
-- **LockScreen** (`LockScreen.js`): Security and authentication interface
-
-## 🛠️ Developer Tools
-
-- **DeveloperApp** (`DeveloperApp.js`): Development tools and debugging interface
-- **WorldInspector** (`WorldInspector.js`): Environment inspection tools
-- **Terminal** (`Terminal.js`): Command-line interface
-
-## 🎯 Core System Files
-
-- **index.js**: Main entry point and app registration
-- **themes.js**: Theme definitions and styling constants
-- **AppTemplate.js**: Base template for creating new applications
-- **manifest.json**: Hyperfy mod configuration and metadata
+3. **State Management**
+```javascript
+// App state handling
+function useAppState(initialState) {
+  const [state, setState] = useState(initialState)
+  
+  useEffect(() => {
+    // Sync with Hyperfy world state
+    world.setState(`happleCore.apps.${app.id}`, state)
+  }, [state])
+  
+  return [state, setState]
+}
+```
 
 ## 🔧 Development
 
 ### Prerequisites
 - Node.js 22.11.0 or higher
 - npm 10.0.0 or higher
-- Hyperfy CLI
 - React 18.3.1
 - Modern web browser
+- Hyperfy world environment
 
 ### Getting Started
 
@@ -143,61 +204,66 @@ git clone https://github.com/yourusername/Happle-Core.git
 npm install
 ```
 
-3. Development server
+3. Development
 ```bash
 npm run dev
 ```
 
-4. Building Hyperfy mod
-```bash
-npm run build
-```
+### Integration in Hyperfy World
 
-### Testing in Hyperfy
-
-1. Place the built .hyp file in your Hyperfy world's mods directory
-2. Enable the mod in your world settings
-3. Test functionality in the Hyperfy client
-
-## 📚 Application Structure
-
-```
-Happle-Core/
-├── src/
-│   ├── components/          # Core UI components
-│   ├── apps/               # Application modules
-│   ├── themes/             # Styling system
-│   └── hyperfy/            # Hyperfy integration
-├── build/                  # Build output
-└── dist/                   # Distribution files
-```
-
-## 🎨 Theming
-
-The framework uses a cyberpunk-inspired theme system defined in `themes.js`, compatible with Hyperfy's theming engine. All components are styled using CSS-in-JS with consistent design tokens and animations.
-
-## 🔌 Hyperfy Integration
-
-### Event System
+1. Copy the Happle-Core directory to your Hyperfy world's mods directory
+2. Add the following to your world's configuration:
 ```javascript
-// Subscribe to Hyperfy world events
-world.on('playerJoined', (player) => {
-  // Handle player join
-})
+// world.js
+import { HappleCore } from './mods/Happle-Core'
 
-// Emit custom events
-world.emit('happleCore:ready')
-```
-
-### Entity Management
-```javascript
-// Create Hyperfy entities
-world.createEntity({
-  type: 'happleCore',
-  position: [0, 0, 0],
+export default {
   components: {
-    // ... component configuration
+    'happle-core': HappleCore
   }
+}
+```
+
+## 🎨 Theming System
+
+The framework implements a comprehensive theming system through `themes.js`:
+
+```javascript
+// themes.js
+export const cyberpunkTheme = {
+  background: '#0a0a0a',
+  primary: '#00ff9d',
+  // ... theme tokens
+  
+  common: {
+    grid: css`
+      display: grid;
+      grid-template-rows: auto 1fr;
+    `,
+    // ... common styles
+  }
+}
+```
+
+## 🔌 Event System
+
+```javascript
+// Core event system
+const events = {
+  'happleCore:ready': () => {
+    // Initialize core systems
+  },
+  'happleCore:appLaunch': (app) => {
+    // Handle app launch
+  },
+  'happleCore:appClose': (app) => {
+    // Handle app close
+  }
+}
+
+// Event registration
+Object.entries(events).forEach(([event, handler]) => {
+  world.on(event, handler)
 })
 ```
 
