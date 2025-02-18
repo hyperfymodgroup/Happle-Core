@@ -4,7 +4,7 @@ A modern, cyberpunk-themed application framework reverse engineered from Hyperfy
 
 ## 🔬 Reverse Engineering Details
 
-### Original Hyperfy Files Modified
+### [Original Hyperfy Files Modified](https://github.com/HowieDuhzit/hyperfy/tree/hyperfone)
 
 1. **Core UI System** (`/src/client/components/`)
    ```
