@@ -1,6 +1,310 @@
 # Happle-Core
 
-A modern, cyberpunk-themed application framework originally implemented as a core mod for Hyperfy virtual worlds. This system provides a suite of interconnected applications and utilities designed to create immersive virtual experiences within Hyperfy environments.
+A modern, cyberpunk-themed application framework reverse engineered from Hyperfy's core systems. This documentation details the exact implementation and modifications made to create a standalone version of the HyperFone core system.
+
+## 🔬 Reverse Engineering Details
+
+### Original Hyperfy Files Modified
+
+1. **Core UI System** (`/src/client/components/`)
+   ```
+   hyperfy/src/client/components/
+   ├── HyperFone.js         # Main phone interface (17KB)
+   ├── hyperfoneOS.js       # Operating system layer (14KB)
+   ├── GUI.js               # Base GUI system (4.0KB)
+   └── hyperfone_core/      # Core components directory
+   ```
+
+2. **Component Integration** (`/src/client/components/hyperfone_core/`)
+   ```
+   hyperfone_core/
+   ├── AppLauncher.js       # App management system
+   ├── AppStore.js          # Application marketplace
+   ├── AppWindow.js         # Window management
+   ├── ChatApp.js           # Messaging system
+   └── ... (other apps)
+   ```
+
+### Core System Modifications
+
+1. **HyperFone Base System** (`HyperFone.js`)
+```javascript
+// Original Hyperfy Implementation
+import { GUI } from './GUI'
+import { useWorld } from '../hooks/useWorld'
+
+export function HyperFone() {
+  const world = useWorld()
+  // ... original implementation
+}
+
+// Modified Standalone Version
+import { css } from '@firebolt-dev/css'
+import { cyberpunkTheme } from './themes'
+
+export function HyperFone({ children }) {
+  // Standalone implementation
+  return (
+    <div css={baseStyles}>
+      <PhoneFrame />
+      <AppContainer>{children}</AppContainer>
+    </div>
+  )
+}
+```
+
+2. **Operating System Layer** (`hyperfoneOS.js`)
+```javascript
+// Original Hyperfy Integration
+const hyperfoneOS = {
+  apps: new Map(),
+  windows: new Map(),
+  state: new WorldState()
+}
+
+// Standalone Implementation
+export const hyperfoneOS = {
+  apps: new Map(),
+  windows: new Map(),
+  state: new LocalState(),
+  
+  // Added standalone functionality
+  registerApp(app) {
+    this.apps.set(app.id, app)
+    this.emit('appRegistered', app)
+  }
+}
+```
+
+### Core Components Extraction
+
+1. **GUI System** (`GUI.js`)
+```javascript
+// Original Hyperfy Implementation
+export function GUI({ world, children }) {
+  return (
+    <WorldContext.Provider value={world}>
+      {children}
+    </WorldContext.Provider>
+  )
+}
+
+// Standalone Version
+export function GUI({ children }) {
+  return (
+    <HappleCoreProvider>
+      <ThemeProvider theme={cyberpunkTheme}>
+        {children}
+      </ThemeProvider>
+    </HappleCoreProvider>
+  )
+}
+```
+
+2. **State Management** (`state.js`)
+```javascript
+// Original Hyperfy World State
+class WorldState {
+  constructor(world) {
+    this.world = world
+    this.subscribers = new Map()
+  }
+}
+
+// Standalone State Implementation
+class LocalState {
+  constructor() {
+    this.state = {}
+    this.subscribers = new Map()
+  }
+  
+  setState(path, value) {
+    // Local state implementation
+  }
+}
+```
+
+### Network Layer Adaptation
+
+1. **Event System** (`events.js`)
+```javascript
+// Original Hyperfy Events
+world.on('playerJoined', player => {
+  // Hyperfy-specific handling
+})
+
+// Standalone Event System
+class EventEmitter {
+  constructor() {
+    this.events = new Map()
+  }
+  
+  on(event, handler) {
+    if (!this.events.has(event)) {
+      this.events.set(event, new Set())
+    }
+    this.events.get(event).add(handler)
+  }
+  
+  emit(event, data) {
+    const handlers = this.events.get(event)
+    if (handlers) {
+      handlers.forEach(handler => handler(data))
+    }
+  }
+}
+```
+
+2. **Network Communication** (`network.js`)
+```javascript
+// Original Hyperfy Network
+world.state({
+  hyperfone: {
+    // World state structure
+  }
+})
+
+// Standalone Network Layer
+export class NetworkManager {
+  constructor() {
+    this.connections = new Map()
+    this.state = new LocalState()
+  }
+  
+  connect(peerId) {
+    // P2P connection implementation
+  }
+  
+  syncState(path, value) {
+    // State synchronization
+  }
+}
+```
+
+## 🔮 Implementation Details
+
+### Core Systems Replication
+
+1. **Window Management System**
+```javascript
+// Original Hyperfy Window System
+class WindowManager {
+  constructor(world) {
+    this.world = world
+    this.windows = new Map()
+  }
+}
+
+// Standalone Window System
+export class WindowManager {
+  constructor() {
+    this.windows = new Map()
+    this.activeWindow = null
+    this.events = new EventEmitter()
+  }
+  
+  createWindow(app) {
+    const window = new AppWindow(app)
+    this.windows.set(app.id, window)
+    return window
+  }
+  
+  focusWindow(windowId) {
+    const window = this.windows.get(windowId)
+    if (window) {
+      this.activeWindow = window
+      this.events.emit('windowFocused', window)
+    }
+  }
+}
+```
+
+2. **App Management System**
+```javascript
+// App Registry Implementation
+export class AppRegistry {
+  constructor() {
+    this.apps = new Map()
+    this.events = new EventEmitter()
+  }
+  
+  registerApp(appDefinition) {
+    const app = new App(appDefinition)
+    this.apps.set(app.id, app)
+    this.events.emit('appRegistered', app)
+    return app
+  }
+  
+  launchApp(appId) {
+    const app = this.apps.get(appId)
+    if (app) {
+      const instance = app.createInstance()
+      this.events.emit('appLaunched', instance)
+      return instance
+    }
+  }
+}
+```
+
+### File Structure Comparison
+
+```
+Original Hyperfy Structure          Standalone Implementation
+------------------------          ------------------------
+/src/client/                     /Happle-Core/
+  ├── components/                  ├── core/
+  │   ├── HyperFone.js            │   ├── HyperFone.js
+  │   ├── hyperfoneOS.js          │   ├── OS.js
+  │   └── GUI.js                  │   └── GUI.js
+  └── hyperfone_core/             └── apps/
+      ├── AppLauncher.js              ├── AppLauncher.js
+      ├── ChatApp.js                  ├── ChatApp.js
+      └── ...                         └── ...
+```
+
+## 🔧 Development
+
+### Building from Hyperfy Source
+
+1. Extract core components:
+```bash
+# Create core directory structure
+mkdir -p Happle-Core/core Happle-Core/apps
+
+# Copy and modify core files
+cp hyperfy/src/client/components/HyperFone.js Happle-Core/core/
+cp hyperfy/src/client/components/hyperfoneOS.js Happle-Core/core/OS.js
+```
+
+2. Modify dependencies:
+```javascript
+// Remove Hyperfy-specific imports
+- import { useWorld } from '../hooks/useWorld'
++ import { useHappleCore } from '../hooks/useHappleCore'
+
+// Replace world references
+- world.state({})
++ happleCore.state({})
+```
+
+3. Implement standalone features:
+```javascript
+// Add standalone state management
+export class HappleCoreState {
+  constructor() {
+    this.state = {}
+    this.events = new EventEmitter()
+  }
+  
+  setState(path, value) {
+    // Implementation
+  }
+  
+  getState(path) {
+    // Implementation
+  }
+}
+```
 
 ## 🌟 Core Features
 
