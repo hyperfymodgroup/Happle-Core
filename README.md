@@ -1,12 +1,69 @@
 # Happle-Core
 
-A modern, cyberpunk-themed application framework for creating immersive digital experiences. This framework provides a suite of interconnected applications and utilities designed to create a cohesive virtual environment.
+A modern, cyberpunk-themed application framework originally developed as a Hyperfy mod, now available as a standalone core framework. This system provides a suite of interconnected applications and utilities designed to create immersive virtual experiences within Hyperfy worlds.
 
 ## 🌟 Core Features
 
 - **Modular Architecture**: Built with a component-based structure for easy extensibility
 - **Cyberpunk UI/UX**: Featuring a distinctive cyberpunk aesthetic with neon accents and futuristic design
 - **Rich Application Suite**: Includes various built-in applications for different functionalities
+- **Hyperfy Integration**: Seamlessly integrates with Hyperfy's virtual world platform
+
+## 🔮 Hyperfy Mod Implementation
+
+This framework was originally implemented as a Hyperfy mod, utilizing Hyperfy's core features:
+
+### Integration Points
+
+1. **Three.js Integration**
+   - Utilizes Hyperfy's Three.js implementation for 3D rendering
+   - Interfaces with Hyperfy's world components and entity system
+   - Compatible with Hyperfy's VRM avatar system
+
+2. **Networking Layer**
+   - Leverages Hyperfy's WebSocket infrastructure for real-time communication
+   - Integrates with Hyperfy's player management system
+   - Utilizes matrix-js-sdk for enhanced chat capabilities
+
+3. **UI Framework**
+   - Built using @firebolt-dev/css and @firebolt-dev/jsx
+   - Implements Hyperfy's component lifecycle management
+   - Maintains consistent styling with Hyperfy's theming system
+
+### Converting to .hyp Files
+
+To convert Happle-Core components into Hyperfy mod files (.hyp):
+
+1. **Component Preparation**
+```javascript
+// Component structure
+export default {
+  name: 'HappleCore',
+  components: {
+    HyperFone,
+    ChatApp,
+    // ... other components
+  }
+}
+```
+
+2. **Build Process**
+```bash
+# Install Hyperfy CLI
+npm install -g @hyperfy/cli
+
+# Build .hyp file
+hyperfy build --input ./src --output ./dist/happle-core.hyp
+```
+
+3. **Required Directory Structure**
+```
+happle-core/
+├── manifest.json     # Mod metadata
+├── components/       # Core components
+├── apps/            # Application modules
+└── themes/          # Styling and themes
+```
 
 ## 📱 Built-in Applications
 
@@ -63,12 +120,15 @@ A modern, cyberpunk-themed application framework for creating immersive digital 
 - **index.js**: Main entry point and app registration
 - **themes.js**: Theme definitions and styling constants
 - **AppTemplate.js**: Base template for creating new applications
+- **manifest.json**: Hyperfy mod configuration and metadata
 
 ## 🔧 Development
 
 ### Prerequisites
-- Node.js
-- React
+- Node.js 22.11.0 or higher
+- npm 10.0.0 or higher
+- Hyperfy CLI
+- React 18.3.1
 - Modern web browser
 
 ### Getting Started
@@ -83,31 +143,63 @@ git clone https://github.com/yourusername/Happle-Core.git
 npm install
 ```
 
-3. Start development server
+3. Development server
 ```bash
-npm start
+npm run dev
 ```
+
+4. Building Hyperfy mod
+```bash
+npm run build
+```
+
+### Testing in Hyperfy
+
+1. Place the built .hyp file in your Hyperfy world's mods directory
+2. Enable the mod in your world settings
+3. Test functionality in the Hyperfy client
 
 ## 📚 Application Structure
 
 ```
 Happle-Core/
-├── AppLauncher.js      # Application launching system
-├── AppStore.js         # Application marketplace
-├── AppTemplate.js      # Base application template
-├── AppWindow.js        # Window management
-├── ChatApp.js          # Messaging system
-├── DeveloperApp.js     # Developer tools
-├── FileExplorerApp.js  # File management
-├── HomeScreen.js       # Main interface
-├── HyperFone.js        # Core container
-├── InventoryApp.js     # Inventory management
-└── ... (other app components)
+├── src/
+│   ├── components/          # Core UI components
+│   ├── apps/               # Application modules
+│   ├── themes/             # Styling system
+│   └── hyperfy/            # Hyperfy integration
+├── build/                  # Build output
+└── dist/                   # Distribution files
 ```
 
 ## 🎨 Theming
 
-The framework uses a cyberpunk-inspired theme system defined in `themes.js`. All components are styled using CSS-in-JS with consistent design tokens and animations.
+The framework uses a cyberpunk-inspired theme system defined in `themes.js`, compatible with Hyperfy's theming engine. All components are styled using CSS-in-JS with consistent design tokens and animations.
+
+## 🔌 Hyperfy Integration
+
+### Event System
+```javascript
+// Subscribe to Hyperfy world events
+world.on('playerJoined', (player) => {
+  // Handle player join
+})
+
+// Emit custom events
+world.emit('happleCore:ready')
+```
+
+### Entity Management
+```javascript
+// Create Hyperfy entities
+world.createEntity({
+  type: 'happleCore',
+  position: [0, 0, 0],
+  components: {
+    // ... component configuration
+  }
+})
+```
 
 ## 🤝 Contributing
 
