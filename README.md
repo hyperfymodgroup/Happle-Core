@@ -339,22 +339,39 @@ export const coreApps = [
 2. **Main Container Implementation**
 ```javascript
 // HyperFone.js - Core Container
+import { IdleManager } from './animations/IdleManager'
+import { HeadScreen } from './HeadScreen'
+
 export function HyperFone({ children }) {
+  const [ref, size] = useElemSize()
+  const touch = useMemo(() => 
+    navigator.userAgent.match(/OculusBrowser|iPhone|iPad|iPod|Android/i),
+  [])
+  
+  useEffect(() => {
+    // Initialize idle manager
+    const idleManager = new IdleManager(world)
+    idleManager.init()
+    
+    return () => {
+      // Cleanup
+    }
+  }, [])
+
   return (
-    <div css={css`
-      // Cyberpunk styling and layout
-      background: ${cyberpunkTheme.background};
-      ${cyberpunkTheme.common.grid}
-      // ... styling implementation
-    `}>
-      {/* Phone Frame */}
-      <div css={phoneFrameStyles}>
-        // Frame implementation
-      </div>
-      {/* Content */}
-      <div css={contentStyles}>
-        {children}
-      </div>
+    <div ref={ref} css={baseStyles}>
+      {size.width > 0 && (
+        <>
+          <HeadScreen world={world} player={world.player} />
+          <PhoneContent 
+            touch={touch}
+            width={size.width}
+            height={size.height}
+          >
+            {children}
+          </PhoneContent>
+        </>
+      )}
     </div>
   )
 }
@@ -562,6 +579,15 @@ const events = {
   },
   'happleCore:appClose': (app) => {
     // Handle app close
+  },
+  'happleCore:idleStart': (animation) => {
+    // Handle idle animation start
+  },
+  'happleCore:idleEnd': () => {
+    // Handle idle animation end
+  },
+  'happleCore:screenUpdate': (content) => {
+    // Update head screen content
   }
 }
 
@@ -587,7 +613,50 @@ Built with 💻 by the Happle-Core Team
 
 ### Core System Enhancements
 
-1. **Enhanced GUI System**
+1. **Modular Animation System**
+```javascript
+// animations/IdleManager.js
+export class IdleManager {
+  constructor(world) {
+    this.world = world
+    this.currentAnimation = null
+    this.idleTimeout = null
+    this.idleDelay = 5000 // 5 seconds
+  }
+
+  init() {
+    // Listen for player movement
+    this.world.on('playerMove', this.resetIdleTimer)
+    this.world.on('playerRotate', this.resetIdleTimer)
+    
+    // Start idle check
+    this.startIdleCheck()
+  }
+
+  resetIdleTimer = () => {
+    if (this.idleTimeout) {
+      clearTimeout(this.idleTimeout)
+    }
+    
+    this.idleTimeout = setTimeout(() => {
+      this.playIdleAnimation()
+    }, this.idleDelay)
+  }
+
+  playIdleAnimation() {
+    const animations = [
+      'idle_stretch',
+      'idle_look_around',
+      'idle_check_phone'
+    ]
+    
+    const randomAnim = animations[Math.floor(Math.random() * animations.length)]
+    this.world.avatar.playAnimation(randomAnim)
+  }
+}
+```
+
+2. **Enhanced GUI System**
 ```javascript
 // New GUI Implementation
 export function GUI({ world }) {
@@ -641,7 +710,7 @@ function Content({ world, width, height }) {
 }
 ```
 
-2. **Advanced Inspection System**
+3. **Advanced Inspection System**
 ```javascript
 // Enhanced InspectPane with Copy/Paste Support
 export function InspectPane({ world, entity }) {
@@ -673,7 +742,7 @@ function Field({ world, config, field, value, modify }) {
 }
 ```
 
-3. **Enhanced State Management**
+4. **Enhanced State Management**
 ```javascript
 // Improved state synchronization
 function useAppState(initialState) {
@@ -827,5 +896,210 @@ const touch = useMemo(() =>
 // Update component rendering
 {touch ? <TouchOptimizedUI /> : <StandardUI />}
 ```
+
+[Previous sections remain the same...] 
+
+## 🔄 Future2 Branch Improvements
+
+### Core System Enhancements
+
+1. **HeadScreen.js**
+```javascript
+import { css } from '@firebolt-dev/css'
+import { useEffect, useState } from 'react'
+
+export function HeadScreen({ world, player }) {
+  const [screenContent, setScreenContent] = useState(null)
+  
+  useEffect(() => {
+    // Create 3D screen mesh
+    const geometry = new THREE.PlaneGeometry(1, 0.3)
+    const material = new THREE.MeshBasicMaterial({
+      transparent: true,
+      opacity: 0.8
+    })
+    const screen = new THREE.Mesh(geometry, material)
+    
+    // Position above player head
+    screen.position.y = 2
+    player.add(screen)
+    
+    // Update content
+    const updateScreen = (content) => {
+      setScreenContent(content)
+      // Update screen texture/material
+    }
+    
+    world.on('screenUpdate', updateScreen)
+    return () => {
+      world.off('screenUpdate', updateScreen)
+      player.remove(screen)
+    }
+  }, [player])
+
+  return null // This is a 3D-only component
+}
+```
+
+2. **Idle Animation System**
+```javascript
+// animations/IdleManager.js
+export class IdleManager {
+  constructor(world) {
+    this.world = world
+    this.currentAnimation = null
+    this.idleTimeout = null
+    this.idleDelay = 5000 // 5 seconds
+  }
+
+  init() {
+    // Listen for player movement
+    this.world.on('playerMove', this.resetIdleTimer)
+    this.world.on('playerRotate', this.resetIdleTimer)
+    
+    // Start idle check
+    this.startIdleCheck()
+  }
+
+  resetIdleTimer = () => {
+    if (this.idleTimeout) {
+      clearTimeout(this.idleTimeout)
+    }
+    
+    this.idleTimeout = setTimeout(() => {
+      this.playIdleAnimation()
+    }, this.idleDelay)
+  }
+
+  playIdleAnimation() {
+    const animations = [
+      'idle_stretch',
+      'idle_look_around',
+      'idle_check_phone'
+    ]
+    
+    const randomAnim = animations[Math.floor(Math.random() * animations.length)]
+    this.world.avatar.playAnimation(randomAnim)
+  }
+}
+```
+
+3. **Integration Changes**
+Update HyperFone.js:
+
+```javascript
+// HyperFone.js
+import { IdleManager } from './animations/IdleManager'
+import { HeadScreen } from './HeadScreen'
+
+export function HyperFone({ children }) {
+  const [ref, size] = useElemSize()
+  const touch = useMemo(() => 
+    navigator.userAgent.match(/OculusBrowser|iPhone|iPad|iPod|Android/i),
+  [])
+  
+  useEffect(() => {
+    // Initialize idle manager
+    const idleManager = new IdleManager(world)
+    idleManager.init()
+    
+    return () => {
+      // Cleanup
+    }
+  }, [])
+
+  return (
+    <div ref={ref} css={baseStyles}>
+      {size.width > 0 && (
+        <>
+          <HeadScreen world={world} player={world.player} />
+          <PhoneContent 
+            touch={touch}
+            width={size.width}
+            height={size.height}
+          >
+            {children}
+          </PhoneContent>
+        </>
+      )}
+    </div>
+  )
+}
+```
+
+4. **New Directory Structure**
+```
+Happle-Core/
+├── core/
+│   ├── gui/
+│   │   ├── GUI.js
+│   │   ├── HeadScreen.js     # New component
+│   │   └── TouchHandler.js
+│   ├── animations/
+│   │   ├── IdleManager.js    # New system
+│   │   └── AnimationList.js  # Animation definitions
+│   └── state/
+│       └── AppState.js
+```
+
+5. **Configuration Updates**
+Add new configuration options:
+
+```javascript
+// config.js
+export const config = {
+  idle: {
+    enabled: true,
+    delay: 5000,
+    animations: [
+      'idle_stretch',
+      'idle_look_around',
+      'idle_check_phone'
+    ]
+  },
+  headScreen: {
+    enabled: true,
+    height: 0.3,
+    width: 1,
+    opacity: 0.8,
+    offset: {
+      y: 2
+    }
+  }
+}
+```
+
+6. **Event System Updates**
+Add new events:
+
+```javascript
+// events.js
+export const events = {
+  // ... existing events
+  'happleCore:idleStart': (animation) => {
+    // Handle idle animation start
+  },
+  'happleCore:idleEnd': () => {
+    // Handle idle animation end
+  },
+  'happleCore:screenUpdate': (content) => {
+    // Update head screen content
+  }
+}
+```
+
+Would you like me to:
+1. Implement any of these specific components?
+2. Add more detailed documentation for the new features?
+3. Create a migration guide for existing Happle-Core installations?
+4. Add examples of using the new head screen or idle animations?
+
+The most important changes are:
+1. Adding the head screen system
+2. Implementing the new idle animation system
+3. Updating the core structure to support these features
+4. Adding configuration options for the new systems
+
+These changes will bring Happle-Core up to date with the latest Yexzu features while maintaining compatibility with existing functionality.
 
 [Previous sections remain the same...] 
